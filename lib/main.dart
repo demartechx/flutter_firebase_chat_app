@@ -1,5 +1,9 @@
+import 'package:firebase_chat_app/screens/auth/login_screen.dart';
 import 'package:firebase_chat_app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+
+//glocal object for accessing device screen size
+late Size mq;
 
 void main() {
   runApp(const MyApp());
@@ -11,6 +15,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+   
     return MaterialApp(
       title: 'We Chat',
       debugShowCheckedModeBanner: false,
@@ -26,7 +31,7 @@ class MyApp extends StatelessWidget {
           color: Colors.black
         )
       ),
-      home: HomeScreen(),
+      home: LoginScreen(),
     );
   }
 }
