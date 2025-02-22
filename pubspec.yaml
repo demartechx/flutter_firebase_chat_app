@@ -44,6 +44,9 @@ dependencies:
   #for accessing firestore database
   cloud_firestore: ^5.6.4
 
+  # for showing network images
+  cached_network_image: ^3.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
