@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class ChatUserCard extends StatefulWidget {
 
-  final ChatUserModel user;
+  final ChatUser user;
 
   const ChatUserCard({super.key, required this.user});
 

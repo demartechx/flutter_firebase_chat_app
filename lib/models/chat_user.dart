@@ -1,4 +1,4 @@
-class ChatUserModel {
+class ChatUser {
   bool isOnline;
   String? pushToken;
   String? createdAt;
@@ -9,7 +9,7 @@ class ChatUserModel {
   String? lastActive;
   String name;
 
-  ChatUserModel({
+  ChatUser({
     required this.isOnline,
     required this.id,
     this.pushToken,
@@ -21,8 +21,8 @@ class ChatUserModel {
     required this.name,
   });
 
-  factory ChatUserModel.fromJson(Map<String, dynamic> json) {
-    return ChatUserModel(
+  factory ChatUser.fromJson(Map<String, dynamic> json) {
+    return ChatUser(
       isOnline: json['is_online'] ?? false,
       pushToken: json['push_token'] ?? '',
       id: json['id'] ?? '',
