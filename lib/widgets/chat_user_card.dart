@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_chat_app/main.dart';
 import 'package:firebase_chat_app/models/chat_user.dart';
+import 'package:firebase_chat_app/screens/chat_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +19,9 @@ class _ChatUserCardState extends State<ChatUserCard> {
   @override
   Widget build(BuildContext context) {
     return  InkWell(
-      onTap: (){},
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (_)=> ChatScreen(user: widget.user,)));
+      },
       child: Card(
         margin: EdgeInsets.symmetric(horizontal: mq.width * .04, vertical: 4),
         //color: Colors.blue.shade100,

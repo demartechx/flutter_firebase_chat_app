@@ -81,5 +81,10 @@ class APIs{
 
   }
 
+  // for getting all specific conversation form firestore database
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(){
+    return firestore.collection('messages').snapshots();
+  }
+
 
 } 

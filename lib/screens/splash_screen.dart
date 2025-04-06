@@ -1,5 +1,3 @@
-
-
 import 'dart:developer';
 import 'package:firebase_chat_app/api/apis.dart';
 import 'package:firebase_chat_app/main.dart';
@@ -25,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(Duration(seconds: 2), (){
       //exit full screen
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle( systemNavigationBarColor: Colors.white, statusBarColor: Colors.white));
 
       if(APIs.auth.currentUser != null){
         log('\nuser: ${APIs.auth.currentUser}');
