@@ -61,7 +61,7 @@ class APIs{
   // update profile picture of user
   static Future<void> updateProfilePicture(File file) async {
 
-    print('I am here');
+    //print('I am here');
 
     //getting image file extension
     final ext = file.path.split('.').last;
@@ -89,16 +89,16 @@ class APIs{
 
   // for getting all specific conversation form firestore database
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(ChatUser user){
-    return firestore.collection('chats/${getConversationID(user.id)}/messages/').snapshots();
+    return firestore.collection('chats/${getConversationID(user.id)}/messages/').orderBy('sent', descending: true).snapshots();
   }
 
   //for sending message
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(ChatUser chatUser, String msg, Type type) async {
     //message sending time (also used as id)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     //message to send
-    final Message message = Message(toId: chatUser.id, type: Type.text, msg: msg, read: '', fromId: user.uid, sent: time);
+    final Message message = Message(toId: chatUser.id, type: type, msg: msg, read: '', fromId: user.uid, sent: time);
 
     final ref = firestore.collection('chats/${getConversationID(chatUser.id)}/messages/');
     await ref.doc(time).set(message.toJson());
@@ -115,6 +115,26 @@ class APIs{
     .orderBy('sent', descending: true)
     .limit(1)
     .snapshots();
+  }
+
+  //send chat image
+  static Future<void> sendChatImage(ChatUser chatUser, File file, Type type) async {
+     //getting image file extension
+    final ext = file.path.split('.').last;
+
+    //storage file ref with path
+    final ref = storage.ref().child('images/${getConversationID(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+    //uploading image
+    await ref.putFile(file, SettableMetadata(contentType: 'image/$ext')).then((p0){
+      // log('Data trabsferred: ${p0.bytesTransferred / 1000} kb');
+
+    });
+
+    // updating image in firestore database
+    final imageUrl = await ref.getDownloadURL();
+
+      sendMessage(chatUser, imageUrl, Type.image);
   }
 
 

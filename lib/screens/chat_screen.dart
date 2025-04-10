@@ -8,6 +8,7 @@ import 'package:firebase_chat_app/models/message.dart';
 import 'package:firebase_chat_app/widgets/message_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatUser user;
@@ -24,8 +25,10 @@ class _ChatScreenState extends State<ChatScreen> {
   // for handling message text changes
   final _textController = TextEditingController();
 
+
+
   // for storing value of showing or hiding emoji
-  bool _showEmoji = false;
+  bool _showEmoji = false, _isuploading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 
                           if (_list.isNotEmpty) {
                             return ListView.builder(
+                              reverse: true,
                               itemCount: _list.length,
                               padding: EdgeInsets.only(top: mq.height * .01),
                               physics: BouncingScrollPhysics(),
@@ -102,6 +106,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
                 ),
+
+                //progress indicator for showing uploading
+                if(_isuploading)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                    child: CircularProgressIndicator(strokeWidth: 2,),
+                  ),
+                ),
                 //chat input field
                 _chatInput(),
                 
@@ -118,7 +132,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     checkPlatformCompatibility: true,
                     viewOrderConfig: const ViewOrderConfig(),
                     emojiViewConfig: EmojiViewConfig(
-                      // Issue: https://github.com/flutter/flutter/issues/28894
                       emojiSizeMax: 28 *
                           (Platform.isIOS
                               ? 1.2
@@ -246,13 +259,46 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   //pick image from gallery
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      //picking multiple images
+                      final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
+                      
+                      //uploading one after the other
+                      for(var image in images){
+                        setState(() {
+                          _isuploading = true;
+                        });
+                        await APIs.sendChatImage(widget.user, File(image.path), Type.image);
+                        setState(() {
+                          _isuploading = false;
+                        });
+                      }
+                  
+                    },
                     icon: Icon(Icons.image, color: Colors.blueAccent, size: 26),
                   ),
 
                   //take image from camera button
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                       final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+                    if(image != null){
+                      //log("Image Path: ${image.path} -- MimeType: ${image.mimeType}");
+
+
+                      setState(() {
+                          _isuploading = true;
+                        });
+                      await APIs.sendChatImage(widget.user, File(image.path), Type.image);
+                      setState(() {
+                          _isuploading = false;
+                        });
+
+                    }
+
+                    },
                     icon: Icon(
                       Icons.camera_alt_rounded,
                       color: Colors.blueAccent,
@@ -269,7 +315,7 @@ class _ChatScreenState extends State<ChatScreen> {
           MaterialButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
-                APIs.sendMessage(widget.user, _textController.text);
+                APIs.sendMessage(widget.user, _textController.text, Type.text);
                 _textController.text = '';
               }
             },
