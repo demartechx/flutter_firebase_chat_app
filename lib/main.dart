@@ -4,17 +4,20 @@ import 'package:firebase_chat_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 
 
 //glocal object for accessing device screen size
 late Size mq;
 
-void main() {
+Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   //enter full-screen
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  await SharedPreferences.getInstance(); 
 
   //for setting orientation to potriat only
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((value){
