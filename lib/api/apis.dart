@@ -52,10 +52,20 @@ class APIs{
     return firestore.collection('users').where('id', isNotEqualTo: user.uid).snapshots();
   }
 
+  //update user active status
+  static Future<void> updateActiveStatus(bool isOnline) async {
+    await firestore.collection('users').doc(user.uid).update({'is_online': isOnline, 'last_active': DateTime.now().millisecondsSinceEpoch.toString()});
+  }
+
 
   // for updating user information
   static Future<void> updateUserInfo() async {
      await firestore.collection('users').doc(user.uid).update({'name': me.name, 'about': me.about});
+  }
+
+// for getting specific user info
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(ChatUser chatUser){
+    return firestore.collection('users').where('id', isEqualTo: chatUser.id).snapshots();
   }
 
   // update profile picture of user
@@ -127,7 +137,7 @@ class APIs{
 
     //uploading image
     await ref.putFile(file, SettableMetadata(contentType: 'image/$ext')).then((p0){
-      // log('Data trabsferred: ${p0.bytesTransferred / 1000} kb');
+      print('Data trabsferred: ${p0.bytesTransferred / 1000} kb');
 
     });
 

@@ -5,6 +5,7 @@ import 'package:firebase_chat_app/main.dart';
 import 'package:firebase_chat_app/models/chat_user.dart';
 import 'package:firebase_chat_app/models/message.dart';
 import 'package:firebase_chat_app/screens/chat_screen.dart';
+import 'package:firebase_chat_app/widgets/dialogs/show_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -55,17 +56,22 @@ class _ChatUserCardState extends State<ChatUserCard> {
             return ListTile(
               //leading: CircleAvatar(child: Icon(CupertinoIcons.person),),
               //leading: CircleAvatar(child: Icon(CupertinoIcons.person),),
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(mq.height * .3),
-                child: CachedNetworkImage(
-                  width: mq.height * .055,
-                  height: mq.height * .055,
-            
-                  imageUrl: widget.user.image,
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget:
-                      (context, url, error) =>
-                          CircleAvatar(child: Icon(CupertinoIcons.person)),
+              leading: InkWell(
+                onTap: () {
+                  showDialog(context: context, builder: (_) => ProfileDialog(user: widget.user));
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(mq.height * .3),
+                  child: CachedNetworkImage(
+                    width: mq.height * .055,
+                    height: mq.height * .055,
+                            
+                    imageUrl: widget.user.image,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget:
+                        (context, url, error) =>
+                            CircleAvatar(child: Icon(CupertinoIcons.person)),
+                  ),
                 ),
               ),
               //user name

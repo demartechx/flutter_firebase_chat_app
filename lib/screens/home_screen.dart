@@ -6,6 +6,7 @@ import 'package:firebase_chat_app/screens/profile_screen.dart';
 import 'package:firebase_chat_app/widgets/chat_user_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,7 +25,26 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    
     APIs.getSelfInfo();
+
+    //for setting user status to active
+    APIs.updateActiveStatus(true);
+        // WidgetsBinding.instance.addObserver(this);
+    SystemChannels.lifecycle.setMessageHandler((message) async {
+
+      if(message.toString().contains('resume')) APIs.updateActiveStatus(true);
+      if(message.toString().contains('pause')) APIs.updateActiveStatus(false);
+
+      //print('Message: $message');
+      return Future.value(message);
+
+    });
+
+  //    SystemChannels.lifecycle.setMessageHandler((message) async {
+  //   print('🔄 Lifecycle Event: $message'); // Prints to terminal
+  //   return message;
+  // });
   }
 
   @override
