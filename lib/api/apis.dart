@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_chat_app/models/chat_user.dart';
 import 'package:firebase_chat_app/models/message.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class APIs{
@@ -20,6 +21,27 @@ class APIs{
   //for storing self information
   static late ChatUser me;
 
+  //for accessing firebase messaging (push Notification)
+  static FirebaseMessaging fMessaging = FirebaseMessaging.instance;
+
+  // for getting firebase messaging token
+  static Future<void> getFirebaseMessagingToken() async {
+
+    NotificationSettings settings = await fMessaging.requestPermission();
+
+
+    await fMessaging.getToken().then((t){
+      if (t!= null){
+        me.pushToken = t;
+        print('token: $t');
+      }
+    });
+    // 
+print('User granted permission: ${settings.authorizationStatus}');
+
+
+  }
+
   static User get user => auth.currentUser!;
 
   // for checking if user exists or not
@@ -29,9 +51,13 @@ class APIs{
 
   // for checking if user exists or not
   static Future<void> getSelfInfo() async {
-   await firestore.collection('users').doc(user.uid).get().then((user){
+   await firestore.collection('users').doc(user.uid).get().then((user) async {
     if(user.exists){
       me = ChatUser.fromJson(user.data()!);
+      await getFirebaseMessagingToken();
+
+    //for setting user status to active
+     APIs.updateActiveStatus(true);
     }else{
       createUser().then((value)=> getSelfInfo());
     }
@@ -54,7 +80,7 @@ class APIs{
 
   //update user active status
   static Future<void> updateActiveStatus(bool isOnline) async {
-    await firestore.collection('users').doc(user.uid).update({'is_online': isOnline, 'last_active': DateTime.now().millisecondsSinceEpoch.toString()});
+    await firestore.collection('users').doc(user.uid).update({'is_online': isOnline, 'last_active': DateTime.now().millisecondsSinceEpoch.toString(), 'push_token': me.pushToken});
   }
 
 

@@ -45,6 +45,8 @@ dependencies:
   cloud_firestore: ^5.6.4
   #firebase storage for  uploading files
   firebase_storage: ^12.4.3
+  #for push notification
+  firebase_messaging: ^15.2.5
 
   # for showing network images
   cached_network_image: ^3.4.1

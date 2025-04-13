@@ -28,8 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
     
     APIs.getSelfInfo();
 
-    //for setting user status to active
-    APIs.updateActiveStatus(true);
         // WidgetsBinding.instance.addObserver(this);
     SystemChannels.lifecycle.setMessageHandler((message) async {
 
