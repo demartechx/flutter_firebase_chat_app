@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_chat_app/api/firebase_messenger.dart';
 import 'package:firebase_chat_app/models/chat_user.dart';
 import 'package:firebase_chat_app/models/message.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -36,10 +37,54 @@ class APIs{
         print('token: $t');
       }
     });
+
+    //for handling foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Got a message whilst in the foreground!');
+    print('Message data: ${message.data}');
+
+    if (message.notification != null) {
+      print('Message also contained a notification: ${message.notification}');
+    }
+  });
+
     // 
 print('User granted permission: ${settings.authorizationStatus}');
 
 
+
+
+  }
+
+
+  // for sending push notification
+  static Future<void> sendPushNotification(ChatUser chatUser, String msg) async {
+
+    try {
+
+    print('------------------------------YES-----------------------------');
+
+    final deviceToken = 'dbawzzkVSByzJlxNAkdAwM:APA91bEMOFA6mfQYQoroxJFMCtsFWjXZVKqoEC8cFIVGIC7vpvkWbBLcsrtjgHc8rYI_rmDuoBJDwo7e-hWS_2kzJH99trFx6qgXJiSK2NrTIer2q_mlwwY';
+
+
+  final messenger = FirebaseMessenger(
+    deviceToken: deviceToken,
+    serviceAccountPath: 'assets/files/wechat-e9958-firebase-adminsdk-fbsvc-a69e17d25c.json',
+  );
+
+    final notificationTitle = chatUser.name; // 'Testing';
+    final notificationBody = msg; // 'This notification was sent using Dart and the provided Service Account key.';
+
+    final customData = {
+      'some_data': 'User ID ${me.id}',
+      'dart_library': 'http',
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    await messenger.sendNotification(notificationTitle, notificationBody, customData);
+    } catch (e) {
+      print('\nSendPushNotificationE: $e');
+    }
   }
 
   static User get user => auth.currentUser!;
@@ -137,7 +182,9 @@ print('User granted permission: ${settings.authorizationStatus}');
     final Message message = Message(toId: chatUser.id, type: type, msg: msg, read: '', fromId: user.uid, sent: time);
 
     final ref = firestore.collection('chats/${getConversationID(chatUser.id)}/messages/');
-    await ref.doc(time).set(message.toJson());
+    await ref.doc(time).set(message.toJson()).then((value){
+      sendPushNotification(chatUser, type == Type.text ? msg : 'image');
+    });
   }
 
   //update read status of message
@@ -171,6 +218,15 @@ print('User granted permission: ${settings.authorizationStatus}');
     final imageUrl = await ref.getDownloadURL();
 
       sendMessage(chatUser, imageUrl, Type.image);
+  }
+
+
+  //delete message
+  static Future<void> deleteMessage(Message message) async {
+    firestore.collection('chats/${getConversationID(message.toId)}/messages/').doc(message.sent).delete();
+
+    if(message.type == Type.image)
+    await storage.refFromURL(message.msg).delete();
   }
 
 

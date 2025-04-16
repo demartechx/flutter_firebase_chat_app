@@ -199,6 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 // bottom sheet for picking a profile picture for user
 void _showBottomSheet(){
+
   showModalBottomSheet(context: context, 
   shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))),
   
@@ -280,4 +281,5 @@ void _showBottomSheet(){
     );
   });
 }
+
 }
