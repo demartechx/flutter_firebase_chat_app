@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:firebase_chat_app/api/apis.dart';
+import 'package:firebase_chat_app/helper/dialogs.dart';
 import 'package:firebase_chat_app/main.dart';
 import 'package:firebase_chat_app/models/chat_user.dart';
 import 'package:firebase_chat_app/screens/profile_screen.dart';
@@ -113,20 +114,30 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(bottom: 10),
             child: FloatingActionButton(
               onPressed: () async {
-                await APIs.auth.signOut();
-                await GoogleSignIn().signOut();
+                _chatUserDialog(context, '');
               },
               child: Icon(Icons.add_comment_rounded),
             ),
           ),
         
-          body: StreamBuilder(
-            stream: APIs.getAllUsers(),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
+          body: StreamBuilder(stream: APIs.getMyAllUserId(), builder: (context, snapshot){
+            switch (snapshot.connectionState) {
                 case ConnectionState.waiting:
                 case ConnectionState.none:
                   return Center(child: CircularProgressIndicator());
+        
+                // if some or all data is loaded then show it
+                case ConnectionState.active:
+                case ConnectionState.done:
+
+              return StreamBuilder(
+            stream: APIs.getAllUsers(snapshot.data?.docs.map((e)=> e.id).toList() ?? []),
+            builder: (context, snapshot) {
+
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                case ConnectionState.none:
+                  // return Center(child: CircularProgressIndicator());
         
                 // if some or all data is loaded then show it
                 case ConnectionState.active:
@@ -151,9 +162,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
               }
             },
-          ),
+          );
+        
+            }
+              // return Center(child: CircularProgressIndicator(strokeWidth: 2,),);
+            
+          }, )
         ),
       ),
     );
   }
+}
+
+
+//for adding chat user
+void _chatUserDialog(dynamic context, message){
+
+  String email = '';
+
+  showDialog(context: context, builder: (_) => AlertDialog(
+    contentPadding: EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 10),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20)
+    ),
+    title: Row(
+      children: [
+        Icon(Icons.person_add, color: Colors.blue, size: 28,),
+        Text(' Add User')
+      ],
+    ),
+
+    //content
+    content: TextFormField(
+      initialValue: email,
+      maxLines: null,
+      onChanged: (value) => email = value,
+      decoration: InputDecoration(
+        hintText: 'Email Id',
+        prefixIcon: Icon(Icons.email, color: Colors.blue,),
+        border: OutlineInputBorder(borderRadius:  BorderRadius.circular(15))),
+    ),
+
+    //actions
+    actions: [
+      MaterialButton(onPressed: (){
+        Navigator.pop(context);
+      }, child: Text('Cancel', style: TextStyle(color: Colors.blue, fontSize: 16),),),
+      MaterialButton(onPressed: (){
+        //hide alert dialog
+        Navigator.pop(context);
+
+        if(email.isNotEmpty){
+          APIs.addChatUser(email).then((value){
+            if(!value){
+              Dialogs.showSnackBar(context, 'User does not exist!');
+            }
+          });
+        } 
+      }, child: Text('Add', style: TextStyle(color: Colors.blue, fontSize: 16),),),
+
+    ],
+  ));
+
 }

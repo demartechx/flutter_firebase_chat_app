@@ -49,7 +49,7 @@ class APIs{
   });
 
     // 
-print('User granted permission: ${settings.authorizationStatus}');
+    print('User granted permission: ${settings.authorizationStatus}');
 
 
 
@@ -94,6 +94,35 @@ print('User granted permission: ${settings.authorizationStatus}');
     return (await firestore.collection('users').doc(auth.currentUser!.uid).get()).exists;
   }
 
+  // for adding a chat user for our conversation
+  static Future<bool> addChatUser(String email) async {
+    final data = await firestore.collection('users').where('email', isEqualTo: email).get();
+
+    //print('data: ${data.docs}');
+
+    if(data.docs.isNotEmpty && data.docs.first.id != user.uid){
+      //user exists
+  //     await firestore
+  // .collection('users')
+  // .doc(user.uid)
+  // .collection('my_users')
+  // .doc(data.docs.first.id)
+  // .set({
+  //   'exists': true,
+  //   'createdAt': FieldValue.serverTimestamp(),
+  // });
+
+
+      await firestore.collection('users').doc(user.uid).collection('my_users').doc(data.docs.first.id).set({});
+      // print('------------------------------true-----------------------------');
+      return true;
+    }else{
+       print('------------------------------false-----------------------------');
+      return false;
+
+    }
+  }
+
   // for checking if user exists or not
   static Future<void> getSelfInfo() async {
    await firestore.collection('users').doc(user.uid).get().then((user) async {
@@ -118,15 +147,30 @@ print('User granted permission: ${settings.authorizationStatus}');
     return await firestore.collection('users').doc(user.uid).set(chatUser.toJson());
   }
 
+  // for getting ids of known users from firestore database
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyAllUserId(){
+        return firestore.collection('users').doc(user.uid).collection('my_users').snapshots();
+
+  }
+
   // for getting all users from firestore database
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(){
-    return firestore.collection('users').where('id', isNotEqualTo: user.uid).snapshots();
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(List<String> userIds){
+    return firestore.collection('users').where('id', whereIn: userIds).snapshots();
   }
 
   //update user active status
   static Future<void> updateActiveStatus(bool isOnline) async {
     await firestore.collection('users').doc(user.uid).update({'is_online': isOnline, 'last_active': DateTime.now().millisecondsSinceEpoch.toString(), 'push_token': me.pushToken});
   }
+
+
+    // for adding a user to my_user when first message is sent
+  static Future<void> sendFirstMessage(ChatUser chatUser, String msg, Type type) async {
+     await firestore.collection('users').doc(chatUser.id).collection('my_users').doc(user.uid).set({}).then((value){
+      sendMessage(chatUser, msg, type);
+     });
+  }
+
 
 
   // for updating user information
@@ -227,6 +271,13 @@ print('User granted permission: ${settings.authorizationStatus}');
 
     if(message.type == Type.image)
     await storage.refFromURL(message.msg).delete();
+  }
+
+  //delete message
+  static Future<void> updateMessage(Message message, String updateMsg) async {
+    await firestore.collection('chats/${getConversationID(message.toId)}/messages/').doc(message.sent).update({'msg': updateMsg});
+
+
   }
 
 

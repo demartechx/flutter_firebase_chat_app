@@ -6,6 +6,8 @@ import 'package:firebase_chat_app/main.dart';
 import 'package:firebase_chat_app/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:saver_gallery/saver_gallery.dart';
+import 'package:dio/dio.dart';
 
 class MessageCard extends StatefulWidget {
   MessageCard({super.key, required this.message});
@@ -224,7 +226,35 @@ class _MessageCardState extends State<MessageCard> {
             ):_OptionItem(
               icon: Icon(Icons.download_rounded, color: Colors.blue, size: 26),
               name: 'Save Image',
-              onTap: () {},
+              onTap: () async {
+
+                try {
+                  var response = await Dio().get(
+                    widget.message.msg,
+                    options: Options(responseType: ResponseType.bytes),
+                  );
+
+                    String imageName = "Save image";
+
+                 final result = await SaverGallery.saveImage(
+                  Uint8List.fromList(response.data),
+                  quality: 60,
+                  androidRelativePath: "Pictures/We chat/images",
+                  skipIfExists: false, fileName: imageName,
+                
+                ).then((success){
+                  Navigator.pop(context);
+                  if(success != null){
+                    Dialogs.showSnackBar(context, 'Image successfully saved');
+                  }
+                   });
+                } catch (e){
+print('Error while saving image: $e');
+                }
+                
+
+               
+              },
             ),
 
 
@@ -239,7 +269,10 @@ class _MessageCardState extends State<MessageCard> {
             _OptionItem(
               icon: Icon(Icons.edit, color: Colors.blue, size: 26),
               name: 'Edit Message',
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                _showMessageUpdateDialog(context, widget.message);
+              },
             ),
 
             //delete option
@@ -274,6 +307,45 @@ class _MessageCardState extends State<MessageCard> {
       },
     );
   }
+}
+
+//dialog for updating message content
+void _showMessageUpdateDialog(dynamic context, message){
+
+  String updatedMsg = message.msg;
+
+  showDialog(context: context, builder: (_) => AlertDialog(
+    contentPadding: EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 10),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20)
+    ),
+    title: Row(
+      children: [
+        Icon(Icons.message, color: Colors.blue, size: 28,),
+        Text(' Update Message')
+      ],
+    ),
+
+    //content
+    content: TextFormField(
+      initialValue: updatedMsg,
+      maxLines: null,
+      onChanged: (value) => updatedMsg = value,
+      decoration: InputDecoration(border: OutlineInputBorder(borderRadius:  BorderRadius.circular(15))),
+    ),
+
+    //actions
+    actions: [
+      MaterialButton(onPressed: (){}, child: Text('Cancel', style: TextStyle(color: Colors.blue, fontSize: 16),),),
+      MaterialButton(onPressed: (){
+        //hide alert dialog
+        Navigator.pop(context);
+        APIs.updateMessage(message, updatedMsg);
+      }, child: Text('Update', style: TextStyle(color: Colors.blue, fontSize: 16),),),
+
+    ],
+  ));
+
 }
 
 class _OptionItem extends StatelessWidget {
